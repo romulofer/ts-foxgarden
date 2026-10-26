@@ -115,3 +115,14 @@ fn files_are_recognized_by_extension() {
         assert_eq!(registry.language_for_extension(extension).map(|l| l.language.id.as_str()), Some(id), ".{extension}");
     }
 }
+
+#[test]
+fn the_extension_declares_that_it_starts_the_language_servers() {
+    assert_eq!(TsExtension.capabilities(), vec![Capability::ProcessExec]);
+    assert_eq!(TsExtension.contributions().language_servers.len(), 3);
+}
+
+#[test]
+fn tsx_is_named_the_way_the_protocol_names_it() {
+    assert_eq!(TSX, "typescriptreact");
+}

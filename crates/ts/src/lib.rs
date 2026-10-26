@@ -3,19 +3,24 @@
 //! Contributes the five languages the web is written in — JavaScript (with
 //! JSX), TypeScript, TSX, HTML and CSS — each with its tree-sitter grammar,
 //! highlight query, node kinds for sticky scroll and folding, and file icon.
-//! No language server, build tool or run markers yet.
+//! Language servers for them (found in the project's `node_modules` or on `PATH`).
+//! No build tool or run markers yet.
 //!
 //! HTML and CSS belong here rather than in a framework extension: a Svelte
 //! component, a Vue file and a plain page all embed them.
 
 use fg_extension::{
-    CURRENT_SCHEMA_VERSION, Contributions, Extension, ExtensionManifest, FileIcon, GrammarContribution, GrammarSource,
-    LanguageContribution, LanguageId, NodeKinds,
+    CURRENT_SCHEMA_VERSION, Capability, Contributions, Extension, ExtensionManifest, FileIcon, GrammarContribution, GrammarSource,
+    LanguageContribution, LanguageId, NodeKinds, ResolvedServerStart, ServerStartContext,
 };
+
+mod server;
 
 pub const JAVASCRIPT: &str = "javascript";
 pub const TYPESCRIPT: &str = "typescript";
-pub const TSX: &str = "tsx";
+/// Named the way the Language Server Protocol names it, since the id is also the
+/// `languageId` a server is told a document has.
+pub const TSX: &str = "typescriptreact";
 pub const HTML: &str = "html";
 pub const CSS: &str = "css";
 
@@ -31,8 +36,18 @@ impl Extension for TsExtension {
         }
     }
 
+    /// The language servers are programs this extension starts.
+    fn capabilities(&self) -> Vec<Capability> {
+        vec![Capability::ProcessExec]
+    }
+
+    fn resolve_server_start(&self, server_id: &str, context: &ServerStartContext) -> Option<Result<ResolvedServerStart, String>> {
+        server::resolve(server_id, context).map(Ok)
+    }
+
     fn contributions(&self) -> Contributions {
         Contributions {
+            language_servers: server::contributions(),
             languages: vec![
                 language(JAVASCRIPT, "JavaScript", &["js", "mjs", "cjs", "jsx"]),
                 language(TYPESCRIPT, "TypeScript", &["ts", "mts", "cts"]),
