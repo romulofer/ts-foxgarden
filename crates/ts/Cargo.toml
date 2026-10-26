@@ -1,0 +1,16 @@
+[package]
+name = "foxgarden-ts"
+version.workspace = true
+edition.workspace = true
+description = "JavaScript and TypeScript support for FoxGarden, as an extension"
+
+[lib]
+name = "foxgarden_ts"
+path = "src/lib.rs"
+
+# Reaches the editor only through `fg-extension`, like `foxgarden-spring` and
+# `foxgarden-kmp`; it must not depend on `fg-core` or `syntax`.
+[dependencies]
+fg-extension = { path = "../../../foxgarden/crates/extension" }
+
+[dev-dependencies]
