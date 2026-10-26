@@ -24,7 +24,8 @@ Each has its tree-sitter grammar with the grammar crate's own highlight query
 (TypeScript's follow JavaScript's, as its grammar extends it), node kinds for
 sticky scroll and folding, and a file icon. TSX's id is the name the Language
 Server Protocol uses, because the id is also the `languageId` a server is told a
-document has.
+document has. In an HTML page, `<script>` is highlighted as JavaScript and
+`<style>` as CSS.
 
 ## Language servers
 
@@ -52,9 +53,8 @@ with (`node_modules/typescript/package.json`):
 ## Not here yet
 
 An installer for the servers, ESLint and Prettier, the JSON and Markdown servers
-from `vscode-langservers-extracted`, CSS and JavaScript embedded in HTML (the
-editor has no language injections), a build tool and run markers (`npm`
-scripts, `node`).
+from `vscode-langservers-extracted`, a build tool and run markers (`npm` scripts,
+`node`), and CSS and JavaScript embedded in JSX or template strings.
 
 ## Development
 

@@ -11,7 +11,7 @@
 
 use fg_extension::{
     CURRENT_SCHEMA_VERSION, Capability, Contributions, Extension, ExtensionManifest, FileIcon, GrammarContribution, GrammarSource,
-    LanguageContribution, LanguageId, NodeKinds, ResolvedServerStart, ServerStartContext,
+    InjectionContribution, LanguageContribution, LanguageId, NodeKinds, ResolvedServerStart, ServerStartContext,
 };
 
 mod server;
@@ -48,6 +48,7 @@ impl Extension for TsExtension {
     fn contributions(&self) -> Contributions {
         Contributions {
             language_servers: server::contributions(),
+            injections: vec![InjectionContribution { language_id: LanguageId::from(HTML), query: HTML_INJECTIONS.to_string() }],
             languages: vec![
                 language(JAVASCRIPT, "JavaScript", &["js", "mjs", "cjs", "jsx"]),
                 language(TYPESCRIPT, "TypeScript", &["ts", "mts", "cts"]),
@@ -112,6 +113,15 @@ impl Extension for TsExtension {
         }
     }
 }
+
+/// A `<script>` in an HTML page is JavaScript and a `<style>` is CSS.
+const HTML_INJECTIONS: &str = r#"
+((script_element (raw_text) @injection.content)
+ (#set! injection.language "javascript"))
+
+((style_element (raw_text) @injection.content)
+ (#set! injection.language "css"))
+"#;
 
 fn language(id: &str, display_name: &str, extensions: &[&str]) -> LanguageContribution {
     LanguageContribution {
