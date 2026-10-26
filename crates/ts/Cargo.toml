@@ -12,5 +12,10 @@ path = "src/lib.rs"
 # `foxgarden-kmp`; it must not depend on `fg-core` or `syntax`.
 [dependencies]
 fg-extension = { path = "../../../foxgarden/crates/extension" }
+tree-sitter = "0.26.11"
+tree-sitter-javascript = "0.25.0"
+tree-sitter-typescript = "0.23.2"
+tree-sitter-html = "0.23.2"
+tree-sitter-css = "0.25.0"
 
 [dev-dependencies]
