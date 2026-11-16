@@ -48,7 +48,12 @@ impl Extension for TsExtension {
     fn contributions(&self) -> Contributions {
         Contributions {
             language_servers: server::contributions(),
-            injections: vec![InjectionContribution { language_id: LanguageId::from(HTML), query: HTML_INJECTIONS.to_string() }],
+            injections: vec![
+                InjectionContribution { language_id: LanguageId::from(HTML), query: HTML_INJECTIONS.to_string() },
+                InjectionContribution { language_id: LanguageId::from(JAVASCRIPT), query: format!("{TEMPLATE_INJECTIONS}{JSX_INJECTIONS}") },
+                InjectionContribution { language_id: LanguageId::from(TYPESCRIPT), query: TEMPLATE_INJECTIONS.to_string() },
+                InjectionContribution { language_id: LanguageId::from(TSX), query: format!("{TEMPLATE_INJECTIONS}{JSX_INJECTIONS}") },
+            ],
             languages: vec![
                 language(JAVASCRIPT, "JavaScript", &["js", "mjs", "cjs", "jsx"]),
                 language(TYPESCRIPT, "TypeScript", &["ts", "mts", "cts"]),
@@ -120,6 +125,45 @@ const HTML_INJECTIONS: &str = r#"
  (#set! injection.language "javascript"))
 
 ((style_element (raw_text) @injection.content)
+ (#set! injection.language "css"))
+"#;
+
+/// CSS in the template literals of the common CSS-in-JS libraries (`css`,
+/// `keyframes`, `createGlobalStyle`, `styled.tag`, `styled(Component)`, and the
+/// body of a `<style>` element, which only a grammar with JSX has), and HTML in an `html` tagged template. Each
+/// text fragment between `${}` substitutions is embedded on its own.
+const TEMPLATE_INJECTIONS: &str = r#"
+((call_expression
+   function: (identifier) @_tag
+   arguments: (template_string (string_fragment) @injection.content))
+ (#any-of? @_tag "css" "keyframes" "createGlobalStyle")
+ (#set! injection.language "css"))
+
+((call_expression
+   function: (member_expression object: (identifier) @_tag)
+   arguments: (template_string (string_fragment) @injection.content))
+ (#eq? @_tag "styled")
+ (#set! injection.language "css"))
+
+((call_expression
+   function: (call_expression function: (identifier) @_tag)
+   arguments: (template_string (string_fragment) @injection.content))
+ (#eq? @_tag "styled")
+ (#set! injection.language "css"))
+
+((call_expression
+   function: (identifier) @_tag
+   arguments: (template_string (string_fragment) @injection.content))
+ (#eq? @_tag "html")
+ (#set! injection.language "html"))
+"#;
+
+/// A `<style>{`...`}</style>` element: only the grammars with JSX have the node.
+const JSX_INJECTIONS: &str = r#"
+((jsx_element
+   open_tag: (jsx_opening_element name: (identifier) @_tag)
+   (jsx_expression (template_string (string_fragment) @injection.content)))
+ (#eq? @_tag "style")
  (#set! injection.language "css"))
 "#;
 
